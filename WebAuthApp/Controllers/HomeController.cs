@@ -61,12 +61,19 @@ namespace WebAuthApp.Controllers
             {
                 new Claim("username", username),
                 new Claim(ClaimTypes.NameIdentifier, username),
+                new Claim(ClaimTypes.Name, "Indiana Jones"),
             };
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
             await HttpContext.SignInAsync(claimsPrincipal);
 
             return Redirect(returnUrl);
+        }
+
+        public async Task<IActionResult> LogOutAsync()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Redirect("/");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

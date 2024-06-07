@@ -10,7 +10,7 @@
 <h1>Login</h1>
 @if (!string.IsNullOrEmpty(error))
 {
-    <h3 pb-3>@error</h3>
+    <h3 class="alert-danger">@error</h3>
 }
 
 <form action="/login?ReturnUrl=@WebUtility.UrlEncode(returnUrl)" method="post">
