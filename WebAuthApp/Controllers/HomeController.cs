@@ -30,7 +30,8 @@ namespace WebAuthApp.Controllers
             return View();
         }
 
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
+        [Authorize]
         public IActionResult Privacy()
         {
             return View();
@@ -70,6 +71,7 @@ namespace WebAuthApp.Controllers
             return Redirect(returnUrl);
         }
 
+        [Authorize]
         public async Task<IActionResult> LogOutAsync()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
