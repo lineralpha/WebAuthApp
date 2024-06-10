@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +16,8 @@ builder.Services
     .AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+        //options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = "GoogleOpenID";
     })
     .AddCookie(options =>
     {
@@ -46,6 +48,7 @@ builder.Services
             }
         };
     })
+    /**
     .AddGoogle(options =>
     {
         options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? string.Empty;
@@ -62,7 +65,7 @@ builder.Services
         //options.AuthorizationEndpoint += "?prompt=consent"; // <= broken in .NET 8
         // work around the above issue
         // https://github.com/dotnet/aspnetcore/issues/47054#issuecomment-1786192809
-        options.Events.OnRedirectToAuthorizationEndpoint = 
+        options.Events.OnRedirectToAuthorizationEndpoint =
             context =>
             {
                 context.RedirectUri += "&prompt=consent";
@@ -76,8 +79,8 @@ builder.Services
                 var tokens = context.Properties.GetTokens().ToList();
                 tokens.Add(new AuthenticationToken()
                 {
-                     Name = "TicketCreated",
-                     Value = DateTime.UtcNow.ToString()
+                    Name = "TicketCreated",
+                    Value = DateTime.UtcNow.ToString()
                 });
                 context.Properties.StoreTokens(tokens);
                 return Task.CompletedTask;
@@ -96,7 +99,34 @@ builder.Services
         };
 
         //options.ReturnUrlParameter; default: "ReturnUrl"
+    })
+    */
+    // use your own scheme name
+    .AddOpenIdConnect("GoogleOpenID", options =>
+    {
+        options.Authority = "https://accounts.google.com";
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? string.Empty;
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? string.Empty;
+        options.CallbackPath = "/google/auth";
+        options.Scope.Add("email");
+
+        options.SaveTokens = true;
+
+        options.Events = new OpenIdConnectEvents()
+        {
+            OnTokenValidated = ctx =>
+            {
+                var claims = ctx.Principal.Claims;
+                var identity = ctx.Principal.Identity as ClaimsIdentity;
+                identity.AddClaim(
+                    new Claim(ClaimTypes.Role, "Admin")
+                );
+
+                return Task.CompletedTask;
+            }
+        };
     });
+
 
 var app = builder.Build();
 
