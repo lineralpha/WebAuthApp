@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -107,6 +108,23 @@ builder.Services
         options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? string.Empty;
         options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? string.Empty;
         options.CallbackPath = "/google/auth";
+        options.Scope.Add("email");
+
+        options.SaveTokens = true;
+
+        options.Events = new OpenIdConnectEvents()
+        {
+            OnTokenValidated = ctx =>
+            {
+                var claims = ctx.Principal.Claims;
+                var identity = ctx.Principal.Identity as ClaimsIdentity;
+                identity.AddClaim(
+                    new Claim(ClaimTypes.Role, "Admin")
+                );
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 

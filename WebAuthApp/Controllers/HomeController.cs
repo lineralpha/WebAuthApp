@@ -32,8 +32,10 @@ namespace WebAuthApp.Controllers
 
         //[Authorize(Roles = "Admin")]
         [Authorize]
-        public IActionResult Privacy()
+        public async Task<IActionResult> PrivacyAsync()
         {
+            // jwt of the user
+            var idToken = await HttpContext.GetTokenAsync("id_token");
             return View();
         }
 
